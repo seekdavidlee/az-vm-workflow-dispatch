@@ -1,0 +1,34 @@
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      vmSku:
+        description: 'Virtual Machine SKU'     
+        required: true
+        default: 'Standard_B2ms'
+      vmCount:
+        description: 'Virtual Machine Count'     
+        required: true
+        default: 2
+
+jobs:
+  setup:
+    name: Setup Azure VM
+    runs-on: windows-latest
+    steps:
+      - name: Azure CLI Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - name: Create virtual machine(s)
+        run: |
+          $vmSku = "${{ github.event.inputs.vmSku }}"
+          $vmCount = ${{ github.event.inputs.vmCount }}
+          az vm create --resource-group ${{ secrets.RESOURCE_GROUP }} `
+          --name "foobar" `
+          --count $vmCount `
+          --size $vmSku `
+          --image ubuntults `
+          --generate-ssh-keys
